@@ -1,0 +1,25 @@
+# Run with `dart --enable-experiment=native-assets run ffigen --config ffigen.yaml`.
+name: NativeQuickJSBindings
+description: |
+  Bindings for `src/src/opencc.h`.
+
+  Regenerate bindings with `dart --enable-experiment=native-assets run ffigen --config ffigen.yaml`.
+output: 'lib/src/lib_opencc.dart'
+functions:
+  rename:
+    '_(.*)': 'ffi_$1' # Removes prefix underscores from all structures.
+headers:
+  entry-points:
+    - 'src/src/opencc.h'
+  include-directives:
+    - 'src/src/opencc.h'
+compiler-opts:
+  - '-I/opt/programs/miniforge3/envs/clang-10/lib/clang/10.0.0/include'
+preamble: |
+  // Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+  // for details. All rights reserved. Use of this source code is governed by a
+  // BSD-style license that can be found in the LICENSE file.
+comments:
+  style: any
+  length: full
+ffi-native:
