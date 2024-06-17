@@ -80,9 +80,11 @@ final class CharArray {
     return true;
   }
 
+  void resize(int length) => _resize(length);
+
   /// Convert to Dart string with extern CString pointer without length.
-  static String toDartString(ffi.Pointer<ffi.Char> pointer) =>
-      pointer.cast<Utf8>().toDartString();
+  static String toDartString(ffi.Pointer<ffi.Char> pointer, [int? length]) =>
+      pointer.cast<Utf8>().toDartString(length: length);
 
   /// Release native resources.
   void dispose() {
@@ -90,4 +92,7 @@ final class CharArray {
     _len = 0;
     _size = 0;
   }
+
+  @override
+  String toString() => dartString;
 }
