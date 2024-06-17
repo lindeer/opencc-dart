@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, Process, exit, stderr, stdout;
+import 'package:glob/glob.dart' show Glob;
+import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:native_assets_cli/native_assets_cli.dart';
 
@@ -23,11 +25,14 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
   if (!dir.existsSync()) {
     dir.createSync(recursive: true);
   }
+
+  final output = buildConfig.outputDirectory.path;
   final cmake = await Process.start(
     'cmake',
     [
       '..',
       '-DCMAKE_BUILD_TYPE=Release',
+      '-DSHARE_INSTALL_PREFIX=$output',
     ],
     workingDirectory: buildDir,
   );
@@ -40,8 +45,7 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
   final make = await Process.start(
     'make',
     [
-      packageName,
-      'VERBOSE=1',
+      'Dictionaries',
     ],
     workingDirectory: buildDir,
   );
@@ -95,6 +99,20 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     ...src.map((s) => pkgRoot.resolve(s)),
     pkgRoot.resolve('build.dart'),
   ]);
+
+  final dataDir = p.join(output, 'opencc');
+  final d = Directory(dataDir);
+  if (!d.existsSync()) {
+    d.createSync();
+  }
+  for (final f in Glob('src/build/data/*.ocd2').listSync()) {
+    final path = p.join(dataDir, p.basename(f.path));
+    f.renameSync(path);
+  }
+  for (final f in Glob('src/data/config/*.json').listSync()) {
+    final path = p.join(dataDir, p.basename(f.path));
+    File(f.path).copySync(path);
+  }
 }
 
 LinkMode _linkMode(LinkModePreference preference) {
