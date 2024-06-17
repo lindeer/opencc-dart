@@ -1,5 +1,4 @@
 import 'dart:async' show StreamTransformerBase;
-import 'dart:convert' show LineSplitter;
 import 'dart:io' show Platform;
 
 import 'src/ffi.dart' show CharArray;
@@ -12,17 +11,21 @@ final class ZhTransformer extends StreamTransformerBase<String, String> {
 
   @override
   Stream<String> bind(Stream<String> stream) async* {
-    final lines = stream.transform(LineSplitter());
     final zh = ZhConverter(_config);
-    await for (final line in lines) {
-      if (line.trim().isEmpty) {
-        yield line;
-      } else {
-        yield zh.convert(line);
+    final eol = Platform.lineTerminator;
+    await for (final text in stream) {
+      final lines = text.split(eol);
+      var pos = 0;
+      for (final line in lines) {
+        if (pos++ != 0) {
+          yield eol;
+        }
+        if (line.trim().isEmpty) {
+          yield line;
+        } else {
+          yield zh.convert(line);
+        }
       }
-      /// LineSplitter erases line terminator,
-      /// we could not check if the last line has terminator.
-      yield Platform.lineTerminator;
     }
     zh.dispose();
   }
