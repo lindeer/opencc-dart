@@ -7,6 +7,8 @@ environment:
   sdk: ^3.3.0
 
 dependencies:
+  ffi: ^2.1.2
+  native_assets_cli: ^0.6.0
 
 dev_dependencies:
   ffigen: ^11.0.0
