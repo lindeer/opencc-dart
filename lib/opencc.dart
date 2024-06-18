@@ -54,7 +54,7 @@ final class ZhConverter {
 
   String convert(String text) {
     _str.pavedBy(text);
-    _buf.resize(_str.length);
+    _buf.resize(_str.length + 1);
     final len = lib.opencc_convert_utf8_to_buffer(
       _native,
       _str.pointer,
