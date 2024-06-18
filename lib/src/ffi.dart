@@ -88,9 +88,12 @@ final class CharArray {
 
   /// Release native resources.
   void dispose() {
-    calloc.free(_buf);
-    _len = 0;
-    _size = 0;
+    if (_buf != ffi.nullptr) {
+      calloc.free(_buf);
+      _len = 0;
+      _size = 0;
+      _buf = ffi.nullptr;
+    }
   }
 
   @override

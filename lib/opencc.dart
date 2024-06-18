@@ -5,13 +5,14 @@ import 'src/ffi.dart' show CharArray;
 import 'src/lib_opencc.dart' as lib;
 
 final class ZhTransformer extends StreamTransformerBase<String, String> {
-  final String _config;
+  final ZhConverter _converter;
 
-  const ZhTransformer(this._config);
+  const ZhTransformer._(this._converter);
+
+  ZhTransformer(String config) : this._(ZhConverter(config, large: true));
 
   @override
   Stream<String> bind(Stream<String> stream) async* {
-    final zh = ZhConverter(_config);
     final eol = Platform.lineTerminator;
     await for (final text in stream) {
       final lines = text.split(eol);
@@ -23,11 +24,14 @@ final class ZhTransformer extends StreamTransformerBase<String, String> {
         if (line.trim().isEmpty) {
           yield line;
         } else {
-          yield zh.convert(line);
+          yield _converter.convert(line);
         }
       }
     }
-    zh.dispose();
+  }
+
+  void dispose() {
+    _converter.dispose();
   }
 }
 
@@ -38,9 +42,11 @@ final class ZhConverter {
 
   const ZhConverter._(this._native, this._str, this._buf);
 
-  factory ZhConverter(String config) {
-    final str = CharArray.from('$config.json');
-    final buf = CharArray(size: 1024);
+  factory ZhConverter(String config, {bool? large}) {
+    final size = large == true ? 4096 : 1024;
+    final str = CharArray(size: size);
+    final buf = CharArray(size: size);
+    str.pavedBy('$config.json');
     final native = lib.opencc_open(str.pointer);
     if (native.address < 0) {
       final err = CharArray.toDartString(lib.opencc_error());

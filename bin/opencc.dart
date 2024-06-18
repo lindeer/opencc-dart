@@ -1,4 +1,3 @@
-
 import 'dart:convert' show utf8;
 import 'dart:io' show Directory, File, exit, stdout;
 
@@ -40,17 +39,19 @@ void main(List<String> argv) async {
     }
   }
 
+  final zh = ZhConverter(config);
+  final zht = ZhTransformer(config);
   for (final input in inputList) {
     final file = File(input);
     if (!file.existsSync()) {
-      final zh = ZhConverter(config);
       final text = zh.convert(input);
       zh.dispose();
       stdout.writeln(text);
     } else {
-      final ss = file.openRead()
+      final ss = file
+          .openRead()
           .transform(utf8.decoder)
-          .transform(ZhTransformer(config))
+          .transform(zht)
           .transform(utf8.encoder);
       if (inplace) {
         final tmp = Directory.systemTemp.createTempSync();
@@ -63,4 +64,6 @@ void main(List<String> argv) async {
       }
     }
   }
+  zh.dispose();
+  zht.dispose();
 }
