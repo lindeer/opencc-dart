@@ -30,6 +30,10 @@ void main(List<String> argv) async {
           exit(-1);
         }
         break;
+      case '-h':
+      case '--help':
+        print(_usage);
+        break;
       default:
         inputList.add(opt);
         break;
