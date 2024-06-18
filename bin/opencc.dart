@@ -39,15 +39,16 @@ void main(List<String> argv) async {
     }
   }
 
-  final zh = ZhConverter(config);
-  final zht = ZhTransformer(config);
+  ZhConverter? zh;
+  ZhTransformer? zht;
   for (final input in inputList) {
     final file = File(input);
     if (!file.existsSync()) {
+      zh ??= ZhConverter(config);
       final text = zh.convert(input);
-      zh.dispose();
       stdout.writeln(text);
     } else {
+      zht ??= ZhTransformer(config);
       final ss = file
           .openRead()
           .transform(utf8.decoder)
@@ -64,6 +65,6 @@ void main(List<String> argv) async {
       }
     }
   }
-  zh.dispose();
-  zht.dispose();
+  zh?.dispose();
+  zht?.dispose();
 }
