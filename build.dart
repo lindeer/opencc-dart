@@ -17,7 +17,20 @@ void main(List<String> args) async {
   await build(args, _builder);
 }
 
+Future<void> _checkCmd(String cmd) async {
+  final proc = await Process.start(
+    'which',
+    [cmd],
+  );
+  final code = await proc.exitCode;
+  if (code != 0) {
+    throw Exception("'$cmd' not found!");
+  }
+}
+
 Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
+  _checkCmd('cmake');
+  _checkCmd('make');
   final pkgRoot = buildConfig.packageRoot;
 
   final buildDir = p.join('src', 'build');
