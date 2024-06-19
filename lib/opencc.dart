@@ -4,11 +4,13 @@ import 'dart:io' show Platform;
 import 'src/ffi.dart' show CharArray;
 import 'src/lib_opencc.dart' as lib;
 
+/// A class for streaming text
 final class ZhTransformer extends StreamTransformerBase<String, String> {
   final ZhConverter _converter;
 
   const ZhTransformer._(this._converter);
 
+  /// [config] would not have to add `.json` suffix.
   ZhTransformer(String config) : this._(ZhConverter(config, large: true));
 
   @override
@@ -30,11 +32,14 @@ final class ZhTransformer extends StreamTransformerBase<String, String> {
     }
   }
 
+  /// `dispose` would have to be called after using, as we need release native
+  /// resources.
   void dispose() {
     _converter.dispose();
   }
 }
 
+/// A class for text segments.
 final class ZhConverter {
   final lib.opencc_t _native;
   final CharArray _str;
@@ -42,6 +47,8 @@ final class ZhConverter {
 
   const ZhConverter._(this._native, this._str, this._buf);
 
+  /// [config] would not have to add `.json` suffix.
+  /// [large] indicate whether to use large memory chunk.
   factory ZhConverter(String config, {bool? large}) {
     final size = large == true ? 4096 : 1024;
     final str = CharArray(size: size);
@@ -58,6 +65,7 @@ final class ZhConverter {
     return ZhConverter._(native, str, buf);
   }
 
+  /// Convert the given [text] to target text as configured.
   String convert(String text) {
     _str.pavedBy(text);
     _buf.resize(_str.length + 1);
@@ -74,6 +82,8 @@ final class ZhConverter {
     return CharArray.toDartString(_buf.pointer, len);
   }
 
+  /// Release native resources.
+  /// An error would occur if called twice.
   void dispose() {
     lib.opencc_close(_native);
     _buf.dispose();
