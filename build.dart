@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, File, Process, exit, stderr, stdout;
+import 'dart:io' show Directory, File, Process, Platform, exit, stderr, stdout;
 import 'package:glob/glob.dart' show Glob;
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
@@ -19,8 +19,8 @@ void main(List<String> args) async {
 
 Future<void> _checkCmd(String cmd) async {
   final proc = await Process.start(
-    'which',
-    [cmd],
+    Platform.isWindows ? 'powershell' : 'which',
+    Platform.isWindows ? ['/c', 'Get-Command', cmd] : [cmd],
   );
   final code = await proc.exitCode;
   if (code != 0) {
