@@ -33,7 +33,7 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
   _checkCmd('make');
   final pkgRoot = buildConfig.packageRoot;
 
-  final buildDir = p.join('src', 'build');
+  final buildDir = p.join(p.fromUri(pkgRoot), 'src', 'build');
   final dir = Directory(buildDir);
   if (!dir.existsSync()) {
     dir.createSync(recursive: true);
