@@ -1,0 +1,30 @@
+name: CI - Build and Test (Multi-arch)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - macos
+        arch:
+          - x86
+          - aarch64
+        sdk: [3.3.0]
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+      - run: git submodule update --init --recursive
+      - run: dart pub get
+      - run: dart analyze
+      - run: dart --enable-experiment=native-assets test
+      - run: dart --enable-experiment=native-assets build build.dart
