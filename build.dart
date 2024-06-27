@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, File, Process, Platform, exit, stderr, stdout;
+import 'dart:io' show Directory, File, Platform, Process, exit, stderr, stdout;
 import 'package:glob/glob.dart' show Glob;
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:native_assets_cli/native_assets_cli.dart';
 
 const packageName = 'opencc';
-const _repoLibName = 'libopencc.so';
+final _repoLibName = Platform.isMacOS
+    ? 'libopencc.dylib'
+    : 'libopencc.so';
 
 /// Implements the protocol from `package:native_assets_cli` by building
 /// the C code in `src/` and reporting what native assets it built.
