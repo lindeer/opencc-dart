@@ -31,8 +31,7 @@ Future<void> _checkCmd(String cmd) async {
 }
 
 Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
-  _checkCmd('cmake');
-  _checkCmd('make');
+  await _checkCmd('cmake');
   final pkgRoot = buildConfig.packageRoot;
 
   final buildDir = p.join(p.fromUri(pkgRoot), 'src', 'build');
@@ -47,6 +46,7 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     [
       '..',
       '-DCMAKE_BUILD_TYPE=Release',
+      '-DBUILD_SHARED_LIBS=ON',
       '-DSHARE_INSTALL_PREFIX=$output',
     ],
     workingDirectory: buildDir,
@@ -58,8 +58,13 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     exit(code);
   }
   final make = await Process.start(
-    'make',
+    'cmake',
     [
+      '--build',
+      '.',
+      '--config',
+      'Release',
+      '--target',
       'Dictionaries',
     ],
     workingDirectory: buildDir,
