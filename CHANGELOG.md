@@ -1,3 +1,12 @@
+## 1.1.0
+
+- Fix windows build error.
+- Support macos build.
+- Build with pure cmake.
+- Add CI/CD workflow for main
+- Upgrade native_assets_cli 0.8.0
+- Upgrade opencc 1.1.9
+
 ## 1.0.1
 
 - Valid repo url.
