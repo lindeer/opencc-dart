@@ -6,7 +6,7 @@ import 'dart:io' show Directory, File, Platform, Process, exit, stderr, stdout;
 import 'package:glob/glob.dart' show Glob;
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
-import 'package:native_assets_cli/native_assets_cli.dart';
+import 'package:native_assets_cli/code_assets.dart';
 
 const packageName = 'opencc';
 final _repoLibName = Platform.isMacOS
@@ -30,9 +30,9 @@ Future<void> _checkCmd(String cmd) async {
   }
 }
 
-Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
+Future<void> _builder(BuildInput input, BuildOutputBuilder out) async {
   await _checkCmd('cmake');
-  final pkgRoot = buildConfig.packageRoot;
+  final pkgRoot = input.packageRoot;
 
   final buildDir = p.join(p.fromUri(pkgRoot), 'src', 'build');
   final dir = Directory(buildDir);
@@ -40,7 +40,7 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     dir.createSync(recursive: true);
   }
 
-  final output = buildConfig.outputDirectory.path;
+  final output = input.outputDirectory.path;
   final cmake = await Process.start(
     'cmake',
     [
@@ -76,14 +76,15 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     exit(code2);
   }
 
-  final linkMode = _linkMode(buildConfig.linkModePreference);
-  final libName = buildConfig.targetOS.libraryFileName(packageName, linkMode);
-  final libUri = buildConfig.outputDirectory.resolve(libName);
+  final linkMode = DynamicLoadingBundled();
+  final buildConfig = input.config.code;
+
+  final libUri = input.outputDirectory.resolve(_repoLibName);
   final uri = pkgRoot.resolve(p.join(buildDir, 'src', _repoLibName));
   final file = File.fromUri(uri).resolveSymbolicLinksSync();
   File(file).renameSync(libUri.path);
 
-  buildOutput.addAsset(NativeCodeAsset(
+  out.assets.code.add(CodeAsset(
     package: packageName,
     name: 'src/lib_$packageName.dart',
     linkMode: linkMode,
@@ -115,7 +116,7 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     'src/src/UTF8Util.cpp',
   ];
 
-  buildOutput.addDependencies([
+  out.addDependencies([
     ...src.map((s) => pkgRoot.resolve(s)),
     pkgRoot.resolve('build.dart'),
   ]);
@@ -133,14 +134,4 @@ Future<void> _builder(BuildConfig buildConfig, BuildOutput buildOutput) async {
     final path = p.join(dataDir, p.basename(f.path));
     File(f.path).copySync(path);
   }
-}
-
-LinkMode _linkMode(LinkModePreference preference) {
-  if (preference == LinkModePreference.dynamic ||
-      preference == LinkModePreference.preferDynamic) {
-    return DynamicLoadingBundled();
-  }
-  assert(preference == LinkModePreference.static ||
-      preference == LinkModePreference.preferStatic);
-  return StaticLinking();
 }
