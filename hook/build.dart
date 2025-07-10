@@ -6,7 +6,8 @@ import 'dart:io' show Directory, File, Platform, Process, exit, stderr, stdout;
 import 'package:glob/glob.dart' show Glob;
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
-import 'package:native_assets_cli/code_assets.dart';
+import 'package:code_assets/code_assets.dart';
+import 'package:hooks/hooks.dart';
 
 const packageName = 'opencc';
 final _repoLibName = Platform.isMacOS
@@ -88,9 +89,7 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder out) async {
     package: packageName,
     name: 'src/lib_$packageName.dart',
     linkMode: linkMode,
-    os: buildConfig.targetOS,
     file: libUri,
-    architecture: buildConfig.targetArchitecture,
   ));
 
   final src = [
