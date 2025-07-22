@@ -1,136 +1,74 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Directory, File, Platform, Process, exit, stderr, stdout;
-import 'package:glob/glob.dart' show Glob;
-import 'package:glob/list_local_fs.dart';
-import 'package:path/path.dart' as p;
+import 'dart:io';
+
 import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 
-const packageName = 'opencc';
-final _repoLibName = Platform.isMacOS
-    ? 'libopencc.dylib'
-    : 'libopencc.so';
+const _libName = 'opencc';
 
-/// Implements the protocol from `package:native_assets_cli` by building
-/// the C code in `src/` and reporting what native assets it built.
 void main(List<String> args) async {
   await build(args, _builder);
 }
 
-Future<void> _checkCmd(String cmd) async {
-  final proc = await Process.start(
-    Platform.isWindows ? 'powershell' : 'which',
-    Platform.isWindows ? ['/c', 'Get-Command', cmd] : [cmd],
+Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
+  final targetOS = input.config.code.targetOS;
+  final arch = input.config.code.targetArchitecture;
+  final outputDirectory = Directory.fromUri(input.outputDirectory);
+  final file = await _download(
+    targetOS,
+    arch,
+    targetOS == OS.iOS ? input.config.code.iOS.targetSdk : null,
+    outputDirectory,
   );
-  final code = await proc.exitCode;
-  if (code != 0) {
-    throw Exception("'$cmd' not found!");
+  /*
+  final fileHash = await hashAsset(file);
+  final expectedHash =
+  assetHashes[input.config.code.targetOS.dylibFileName(
+    createTargetName(
+      targetOS.name,
+      targetArchitecture.name,
+      iOSSdk?.type,
+    ),
+  )];
+  if (fileHash != expectedHash) {
+    throw Exception(
+      'File $file was not downloaded correctly. '
+          'Found hash $fileHash, expected $expectedHash.',
+    );
   }
+  */
+  output.assets.code.add(
+    CodeAsset(
+      package: input.packageName,
+      name: 'src/lib_$_libName.dart',
+      linkMode: DynamicLoadingBundled(),
+      file: file.uri,
+    ),
+  );
 }
 
-Future<void> _builder(BuildInput input, BuildOutputBuilder out) async {
-  await _checkCmd('cmake');
-  final pkgRoot = input.packageRoot;
+const _url = 'https://github.com/dart-lang/native/releases/download';
 
-  final buildDir = p.join(p.fromUri(pkgRoot), 'src', 'build');
-  final dir = Directory(buildDir);
-  if (!dir.existsSync()) {
-    dir.createSync(recursive: true);
+Future<File> _download(
+    OS os,
+    Architecture arch,
+    IOSSdk? iOSSdk,
+    Directory outDir,
+    ) async {
+
+  final suffix = iOSSdk == null ? '' : '-$iOSSdk';
+  final targetName = os.dylibFileName('$_libName-$os-$arch$suffix');
+  final uri = Uri.parse('$_url/$version/$targetName');
+  final request = await HttpClient().getUrl(uri);
+  final response = await request.close();
+  if (response.statusCode != 200) {
+    throw ArgumentError('The request to $uri failed.');
   }
-
-  final output = input.outputDirectory.path;
-  final cmake = await Process.start(
-    'cmake',
-    [
-      '..',
-      '-DCMAKE_BUILD_TYPE=Release',
-      '-DBUILD_SHARED_LIBS=ON',
-      '-DSHARE_INSTALL_PREFIX=$output',
-    ],
-    workingDirectory: buildDir,
-  );
-  stdout.addStream(cmake.stdout);
-  stderr.addStream(cmake.stderr);
-  final code = await cmake.exitCode;
-  if (code != 0) {
-    exit(code);
-  }
-  final make = await Process.start(
-    'cmake',
-    [
-      '--build',
-      '.',
-      '--config',
-      'Release',
-      '--target',
-      'Dictionaries',
-    ],
-    workingDirectory: buildDir,
-  );
-  stdout.addStream(make.stdout);
-  stderr.addStream(make.stderr);
-  final code2 = await make.exitCode;
-  if (code2 != 0) {
-    exit(code2);
-  }
-
-  final linkMode = DynamicLoadingBundled();
-  final buildConfig = input.config.code;
-
-  final libUri = input.outputDirectory.resolve(_repoLibName);
-  final uri = pkgRoot.resolve(p.join(buildDir, 'src', _repoLibName));
-  final file = File.fromUri(uri).resolveSymbolicLinksSync();
-  File(file).renameSync(libUri.path);
-
-  out.assets.code.add(CodeAsset(
-    package: packageName,
-    name: 'src/lib_$packageName.dart',
-    linkMode: linkMode,
-    file: libUri,
-  ));
-
-  final src = [
-    'src/src/BinaryDict.cpp',
-    'src/src/Config.cpp',
-    'src/src/ConversionChain.cpp',
-    'src/src/Conversion.cpp',
-    'src/src/Converter.cpp',
-    'src/src/DartsDict.cpp',
-    'src/src/DictConverter.cpp',
-    'src/src/Dict.cpp',
-    'src/src/DictEntry.cpp',
-    'src/src/DictGroup.cpp',
-    'src/src/Lexicon.cpp',
-    'src/src/MarisaDict.cpp',
-    'src/src/MaxMatchSegmentation.cpp',
-    'src/src/PhraseExtract.cpp',
-    'src/src/Segmentation.cpp',
-    'src/src/SerializedValues.cpp',
-    'src/src/SimpleConverter.cpp',
-    'src/src/TextDict.cpp',
-    'src/src/UTF8StringSlice.cpp',
-    'src/src/UTF8Util.cpp',
-  ];
-
-  out.addDependencies([
-    ...src.map((s) => pkgRoot.resolve(s)),
-    pkgRoot.resolve('build.dart'),
-  ]);
-
-  final dataDir = p.join(output, 'opencc');
-  final d = Directory(dataDir);
-  if (!d.existsSync()) {
-    d.createSync();
-  }
-  for (final f in Glob('src/build/data/*.ocd2').listSync()) {
-    final path = p.join(dataDir, p.basename(f.path));
-    f.renameSync(path);
-  }
-  for (final f in Glob('src/data/config/*.json').listSync()) {
-    final path = p.join(dataDir, p.basename(f.path));
-    File(f.path).copySync(path);
-  }
+  final library = File.fromUri(outDir.uri.resolve(targetName));
+  await library.create();
+  await response.pipe(library.openWrite());
+  return library;
 }
