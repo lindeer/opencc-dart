@@ -1,3 +1,7 @@
+## 1.2.0
+- Upgrade native_assets_cli to hook
+- Set dart sdk version as 3.10.0-14.0.dev
+
 ## 1.1.0
 
 - Fix windows build error.
