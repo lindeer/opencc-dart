@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
+import 'package:path/path.dart' as p;
 
 const _libName = 'opencc';
 
@@ -23,6 +24,23 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
     targetOS == OS.iOS ? input.config.code.iOS.targetSdk : null,
     outputDirectory,
   );
+
+  final make = await Process.start(
+    'unzip',
+    [
+      '-o',
+      file.path,
+    ],
+    workingDirectory: input.outputDirectory.path,
+  );
+
+  stdout.addStream(make.stdout);
+  stderr.addStream(make.stderr);
+  final code = await make.exitCode;
+  if (code != 0) {
+    exit(code);
+  }
+  print("Unzip '$file' done.");
   /*
   final fileHash = await hashAsset(file);
   final expectedHash =
@@ -40,12 +58,13 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
     );
   }
   */
+  final targetName = targetOS.dylibFileName(input.packageName);
   output.assets.code.add(
     CodeAsset(
       package: input.packageName,
       name: 'src/lib_$_libName.dart',
       linkMode: DynamicLoadingBundled(),
-      file: file.uri,
+      file: outputDirectory.uri.resolve(targetName),
     ),
   );
 }
@@ -60,15 +79,17 @@ Future<File> _download(
     ) async {
 
   final suffix = iOSSdk == null ? '' : '-$iOSSdk';
-  final targetName = os.dylibFileName('$_libName-$os-$arch$suffix');
-  final uri = Uri.parse('$_url/$version/$targetName');
+  final uri = Uri.parse('http://127.0.0.1:8000/opencc-$os-$arch$suffix.zip');
+  print("Downloading '$uri' ...");
   final request = await HttpClient().getUrl(uri);
   final response = await request.close();
   if (response.statusCode != 200) {
     throw ArgumentError('The request to $uri failed.');
   }
-  final library = File.fromUri(outDir.uri.resolve(targetName));
-  await library.create();
-  await response.pipe(library.openWrite());
-  return library;
+  print("Download done.");
+  final archive = File.fromUri(outDir.uri.resolve(p.basename(uri.path)));
+  print("zip archive: $archive");
+  await archive.create();
+  await response.pipe(archive.openWrite());
+  return archive;
 }
