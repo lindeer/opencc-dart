@@ -41,7 +41,7 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: ${{ matrix.arch }}
+        arch: ${{ matrix.arch == 'aarch64' && 'amd64_arm64' || 'amd64_x86' }}
       if: ${{ matrix.os == 'windows' }}
 
     - run: dart pub get
@@ -72,6 +72,7 @@ jobs:
 
     - name: Pack Linux archive
       if: matrix.os == 'ubuntu'
+      working-directory: assets
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.so .
@@ -79,10 +80,11 @@ jobs:
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
         zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.so opecc/
-        working-directory: assets
+
 
     - name: Pack MacOS archive
       if: matrix.os == 'macos'
+      working-directory: assets
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.dylib ../lib-src/build/src/*.dll .
@@ -90,10 +92,10 @@ jobs:
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
         zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dylib opecc/
-        working-directory: assets
 
     - name: Pack Windows archive
       if: matrix.os == 'windows'
+      working-directory: assets
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.dll .
@@ -101,7 +103,6 @@ jobs:
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
         zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dll opecc/
-        working-directory: assets
 
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
