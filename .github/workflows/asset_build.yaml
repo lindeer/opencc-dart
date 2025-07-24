@@ -1,0 +1,137 @@
+name: opencc_assets
+
+permissions:
+  contents: write
+
+on:
+  pull_request:
+    branches: [ t/assets ]
+    paths:
+      - .github/workflows/asset_build.yaml
+      - opencc-version
+  push:
+    branches: [ t/assets ]
+    paths:
+      - .github/workflows/asset_build.yaml
+      - opencc-version
+    tags:
+      - 'prebuild-assets-*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+        arch: [x86, aarch64]
+
+    runs-on: ${{ matrix.os }}-latest
+
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+    - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      with:
+        sdk: stable
+
+    - name: Install native toolchains
+      run: sudo apt-get update && sudo apt-get install clang-15
+      if: ${{ matrix.os == 'ubuntu' }}
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
+      if: ${{ matrix.os == 'windows' }}
+
+    - run: dart pub get
+    - run: git clone https://github.com/BYVoid/OpenCC.git lib-src --depth 1 -b $(cat opencc-version)
+    - run: mkdir -p lib-src/build assets
+
+    # Keep this list consistent with pkgs/native_assets_cli/example/build/download_asset/lib/src/hook_helpers/target_versions.dart
+    - name: Build Linux host
+      if: matrix.os == 'ubuntu'
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+        cmake --build . --config Release --target Dictionaries
+        working-directory: lib-src/build
+
+    - name: Build MacOS host
+      if: matrix.os == 'macos'
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+        cmake --build . --config Release --target Dictionaries
+        working-directory: lib-src/build
+
+    - name: Build Windows host
+      if: matrix.os == 'windows'
+      run: |
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+        cmake --build . --config Release --target Dictionaries
+        working-directory: lib-src/build
+
+    - name: Pack Linux archive
+      if: matrix.os == 'ubuntu'
+      run: |
+        ls ../lib-src/build/src
+        mv ../lib-src/build/src/*.so .
+        mkdir opencc
+        mv ../lib-src/build/data/*.ocd2 opencc
+        mv ../lib-src/data/config/*.json opencc
+        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.so opecc/
+        working-directory: assets
+
+    - name: Pack MacOS archive
+      if: matrix.os == 'macos'
+      run: |
+        ls ../lib-src/build/src
+        mv ../lib-src/build/src/*.dylib ../lib-src/build/src/*.dll .
+        mkdir opencc
+        mv ../lib-src/build/data/*.ocd2 opencc
+        mv ../lib-src/data/config/*.json opencc
+        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dylib opecc/
+        working-directory: assets
+
+    - name: Pack Windows archive
+      if: matrix.os == 'windows'
+      run: |
+        ls ../lib-src/build/src
+        mv ../lib-src/build/src/*.dll .
+        mkdir opencc
+        mv ../lib-src/build/data/*.ocd2 opencc
+        mv ../lib-src/data/config/*.json opencc
+        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dll opecc/
+        working-directory: assets
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ${{ matrix.os }}-host
+        path: |
+          assets/*.zip
+        if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: true
+
+      - name: Download assets
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          merge-multiple: true
+          path: assets
+
+      - name: Display structure of downloaded assets
+        run: ls -R assets
+
+      - name: Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
+        # if: startsWith(github.ref, 'refs/tags/prebuild-assets')
+        with:
+          files: 'assets/**'
+          fail_on_unmatched_files: true
