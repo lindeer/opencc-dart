@@ -51,24 +51,24 @@ jobs:
     # Keep this list consistent with pkgs/native_assets_cli/example/build/download_asset/lib/src/hook_helpers/target_versions.dart
     - name: Build Linux host
       if: matrix.os == 'ubuntu'
+      working-directory: lib-src/build
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
         cmake --build . --config Release --target Dictionaries
-        working-directory: lib-src/build
 
     - name: Build MacOS host
       if: matrix.os == 'macos'
+      working-directory: lib-src/build
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
         cmake --build . --config Release --target Dictionaries
-        working-directory: lib-src/build
 
     - name: Build Windows host
       if: matrix.os == 'windows'
+      working-directory: lib-src/build
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
         cmake --build . --config Release --target Dictionaries
-        working-directory: lib-src/build
 
     - name: Pack Linux archive
       if: matrix.os == 'ubuntu'
