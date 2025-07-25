@@ -102,9 +102,7 @@ jobs:
       if: matrix.os == 'windows'
       working-directory: assets
       run: |
-        ls ../lib-src/build/src/libopencc.dir
-        ls ../lib-src/build/src/Release
-        mv ../lib-src/build/src/*.dll .
+        mv ../lib-src/build/src/Release/*.dll .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
