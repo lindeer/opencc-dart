@@ -4,11 +4,6 @@ permissions:
   contents: write
 
 on:
-  pull_request:
-    branches: [ t/assets ]
-    paths:
-      - .github/workflows/asset_build.yaml
-      - opencc-version
   push:
     branches: [ t/assets ]
     paths:
@@ -29,11 +24,11 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
 
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/checkout@v4
 
-    - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+    - uses: dart-lang/setup-dart@v1
       with:
-        sdk: 3.10.0-14.0.dev
+        sdk: stable
 
     - name: Install native toolchains
       run: sudo apt-get update && sudo apt-get install clang-15
@@ -41,78 +36,38 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: ${{ matrix.arch == 'aarch64' && 'amd64_arm64' || 'amd64_x86' }}
+        arch: ${{ matrix.arch == 'arm64' && 'amd64_arm64' || 'amd64_x86' }}
       if: ${{ matrix.os == 'windows' }}
 
-    - run: dart pub get
     - run: git clone https://github.com/BYVoid/OpenCC.git lib-src --depth 1 -b $(cat opencc-version)
-    - run: mkdir -p lib-src/build assets
-      if: ${{ matrix.os != 'windows' }}
     - run: |
-        mkdir lib-src\build
+        mkdir lib-src/build
         mkdir assets
-      if: ${{ matrix.os == 'windows' }}
 
-    # Keep this list consistent with pkgs/native_assets_cli/example/build/download_asset/lib/src/hook_helpers/target_versions.dart
-    - name: Build Linux host
-      if: matrix.os == 'ubuntu'
+    - name: Build ${{ matrix.os }} host
       working-directory: lib-src/build
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
         cmake --build . --config Release --target Dictionaries
 
-    - name: Build MacOS host
-      if: matrix.os == 'macos'
-      working-directory: lib-src/build
-      run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
-        cmake --build . --config Release --target Dictionaries
-
-    - name: Build Windows host
-      if: matrix.os == 'windows'
-      working-directory: lib-src/build
-      run: |
-        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
-        cmake --build . --config Release --target Dictionaries
-
-    - name: Pack Linux archive
-      if: matrix.os == 'ubuntu'
+    - name: Pack assets archive
       working-directory: assets
+      env:
+        EXT: ${{ matrix.os == 'ubuntu' && 'so' || (matrix.os == 'macos' && 'dylib' || 'dll') }}
+        LIB_DIR: ${{ matrix.os == 'windows' && '/Release' || '' }}
+        CMD: ${{ matrix.os == 'windows' && 'tar.exe -cf' || 'zip -r' }}
       run: |
         ls ../lib-src/build/src
-        mv ../lib-src/build/src/*.so* .
+        mv ../lib-src/build/src${LIB_DIR}/*.$EXT .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.so* opencc/
-
-
-    - name: Pack MacOS archive
-      if: matrix.os == 'macos'
-      working-directory: assets
-      run: |
-        ls ../lib-src/build/src
-        mv ../lib-src/build/src/*.dylib .
-        mkdir opencc
-        mv ../lib-src/build/data/*.ocd2 opencc
-        mv ../lib-src/data/config/*.json opencc
-        zip -r 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dylib opencc/
-
-    - name: Pack Windows archive
-      if: matrix.os == 'windows'
-      working-directory: assets
-      run: |
-        mv ../lib-src/build/src/Release/*.dll .
-        mkdir opencc
-        mv ../lib-src/build/data/*.ocd2 opencc
-        mv ../lib-src/data/config/*.json opencc
-        ls -R .
-        tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
+        $CMD assets.zip *.$EXT opencc
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      uses: actions/upload-artifact@v4
       with:
-        name: opencc-${{ matrix.os }}-${{ matrix.arch }}
+        name: opencc-${{ matrix.os == 'ubuntu' && 'linux' || matrix.os }}-${{ matrix.arch }}
         path: |
           assets/*.zip
         if-no-files-found: error
@@ -122,10 +77,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@v4
 
       - name: Download assets
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        uses: actions/download-artifact@v4
         with:
           merge-multiple: true
           path: assets
@@ -134,7 +89,7 @@ jobs:
         run: ls -R assets
 
       - name: Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
+        uses: softprops/action-gh-release@v2
         # if: startsWith(github.ref, 'refs/tags/prebuild-assets')
         with:
           files: 'assets/**'
