@@ -55,7 +55,7 @@ jobs:
       env:
         EXT: ${{ matrix.os == 'ubuntu' && 'so' || (matrix.os == 'macos' && 'dylib' || 'dll') }}
         LIB_DIR: ${{ matrix.os == 'windows' && '/Release' || '' }}
-        CMD: ${{ matrix.os == 'windows' && 'tar.exe -cf' || 'zip -r' }}
+        CMD: ${{ matrix.os == 'windows' && '& "tar.exe -cf"' || 'zip -r' }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src${LIB_DIR}/*.$EXT .
