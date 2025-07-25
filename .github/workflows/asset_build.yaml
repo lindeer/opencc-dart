@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        arch: [x86, aarch64]
+        arch: [x64, arm64]
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -48,7 +48,9 @@ jobs:
     - run: git clone https://github.com/BYVoid/OpenCC.git lib-src --depth 1 -b $(cat opencc-version)
     - run: mkdir -p lib-src/build assets
       if: ${{ matrix.os != 'windows' }}
-    - run: md lib-src\build assets
+    - run: |
+        mkdir lib-src\build
+        mkdir assets
       if: ${{ matrix.os == 'windows' }}
 
     # Keep this list consistent with pkgs/native_assets_cli/example/build/download_asset/lib/src/hook_helpers/target_versions.dart
@@ -110,7 +112,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: ${{ matrix.os }}-host
+        name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
           assets/*.zip
         if-no-files-found: error
