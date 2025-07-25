@@ -76,45 +76,36 @@ jobs:
     - name: Pack Linux archive
       if: matrix.os == 'ubuntu'
       working-directory: assets
-      env:
-        OS: {{ matrix.os }}
-        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.so .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-$OS-$ARCH.zip *.so opecc/
+        zip -r "opencc-${{ matrix.os }}-${{ matrix.os }}.zip" *.so opecc/
 
 
     - name: Pack MacOS archive
       if: matrix.os == 'macos'
       working-directory: assets
-      env:
-        OS: {{ matrix.os }}
-        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.dylib .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-$OS-$ARCH.zip *.dylib opecc/
+        zip -r "opencc-${{ matrix.os }}-${{ matrix.os }}.zip" *.dylib opecc/
 
     - name: Pack Windows archive
       if: matrix.os == 'windows'
       working-directory: assets
-      env:
-        OS: {{ matrix.os }}
-        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.dll .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-$OS-$ARCH.zip *.dll opecc/
+        zip -r "opencc-${{ matrix.os }}-${{ matrix.os }}.zip" *.dll opecc/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
