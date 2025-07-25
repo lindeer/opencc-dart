@@ -54,7 +54,7 @@ jobs:
       working-directory: assets
       if: ${{ matrix.os != 'windows' }}
       env:
-        EXT: ${{ matrix.os == 'ubuntu' && 'so' || 'dylib') }}
+        EXT: ${{ matrix.os == 'ubuntu' && 'so' || 'dylib' }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.${EXT}* .
