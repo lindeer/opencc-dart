@@ -106,7 +106,8 @@ jobs:
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        tar -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc/
+        ls -R .
+        tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
