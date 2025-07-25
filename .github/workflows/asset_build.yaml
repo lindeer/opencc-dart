@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, macos, windows]
-        arch: [x64, arm64]
+        arch: [x86, arm64]
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -102,12 +102,13 @@ jobs:
       if: matrix.os == 'windows'
       working-directory: assets
       run: |
-        ls ../lib-src/build/src
+        ls ../lib-src/build/src/libopencc.dir
+        ls ../lib-src/build/src/Release
         mv ../lib-src/build/src/*.dll .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc/
+        tar -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
