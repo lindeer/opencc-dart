@@ -47,6 +47,9 @@ jobs:
     - run: dart pub get
     - run: git clone https://github.com/BYVoid/OpenCC.git lib-src --depth 1 -b $(cat opencc-version)
     - run: mkdir -p lib-src/build assets
+      if: ${{ matrix.os != 'windows' }}
+    - run: mkdir lib-src\build assets
+      if: ${{ matrix.os == 'windows' }}
 
     # Keep this list consistent with pkgs/native_assets_cli/example/build/download_asset/lib/src/hook_helpers/target_versions.dart
     - name: Build Linux host
@@ -73,36 +76,45 @@ jobs:
     - name: Pack Linux archive
       if: matrix.os == 'ubuntu'
       working-directory: assets
+      env:
+        OS: {{ matrix.os }}
+        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.so .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.so opecc/
+        zip -r opencc-$OS-$ARCH.zip *.so opecc/
 
 
     - name: Pack MacOS archive
       if: matrix.os == 'macos'
       working-directory: assets
+      env:
+        OS: {{ matrix.os }}
+        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
-        mv ../lib-src/build/src/*.dylib ../lib-src/build/src/*.dll .
+        mv ../lib-src/build/src/*.dylib .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dylib opecc/
+        zip -r opencc-$OS-$ARCH.zip *.dylib opecc/
 
     - name: Pack Windows archive
       if: matrix.os == 'windows'
       working-directory: assets
+      env:
+        OS: {{ matrix.os }}
+        ARCH: {{ matrix.arch }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.dll .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        zip -r opencc-{{ matrix.os }}-{{ matrix.arch }}.zip *.dll opecc/
+        zip -r opencc-$OS-$ARCH.zip *.dll opecc/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
