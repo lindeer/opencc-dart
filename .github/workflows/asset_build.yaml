@@ -52,17 +52,27 @@ jobs:
 
     - name: Pack assets archive
       working-directory: assets
+      if: ${{ matrix.os != 'windows' }}
       env:
-        EXT: ${{ matrix.os == 'ubuntu' && 'so' || (matrix.os == 'macos' && 'dylib' || 'dll') }}
-        LIB_DIR: ${{ matrix.os == 'windows' && '/Release' || '' }}
-        CMD: ${{ matrix.os == 'windows' && '& tar.exe -cf' || 'zip -r' }}
+        EXT: ${{ matrix.os == 'ubuntu' && 'so' || 'dylib') }}
       run: |
         ls ../lib-src/build/src
-        mv ../lib-src/build/src${LIB_DIR}/*.$EXT .
+        mv ../lib-src/build/src/*.${EXT}* .
         mkdir opencc
         mv ../lib-src/build/data/*.ocd2 opencc
         mv ../lib-src/data/config/*.json opencc
-        $CMD assets.zip *.$EXT opencc
+        zip -r assets.zip *.${EXT}* opencc
+
+    - name: Pack windows archive
+      working-directory: assets
+      if: ${{ matrix.os == 'windows' }}
+      run: |
+        ls ../lib-src/build/src
+        mv ../lib-src/build/src/Release/*.dll .
+        mkdir opencc
+        mv ../lib-src/build/data/*.ocd2 opencc
+        mv ../lib-src/data/config/*.json opencc
+        tar.exe -cf assets.zip *.dll opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
