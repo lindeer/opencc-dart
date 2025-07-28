@@ -21,7 +21,7 @@ jobs:
         os: [linux]
         arch: [arm64]
 
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-18.04-arm
 
     steps:
     - uses: actions/checkout@v4
@@ -32,17 +32,7 @@ jobs:
 
     - name: Install native toolchains
       run: sudo apt-get update && sudo apt-get install clang-15
-      if: ${{ matrix.os == 'linux' && matrix.arch == 'x86'}}
-
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        activate-environment: glibc-17
-      if: ${{ matrix.os == 'linux' && matrix.arch == 'arm64'}}
-
-    - name: Install conda toolchain
-      run: |
-        conda install 'sysroot_linux-aarch64=2.17' 'gxx_linux-aarch64=9.5.0' -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
-      if: ${{ matrix.os == 'linux' && matrix.arch == 'arm64'}}
+      if: ${{ matrix.os == 'linux'}}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
