@@ -26,14 +26,14 @@ jobs:
             runner: ubuntu-latest
           - os: linux
             arch: arm64
-            runner: ubuntu-latest-arm
+            runner: ubuntu-22.04-arm
 
           - os: macos
             arch: x86
             runner: macos-13
           - os: macos
             arch: arm64
-            runner: macos-13-arm
+            runner: macos-13-xlarge
 
           - os: windows
             arch: x86
