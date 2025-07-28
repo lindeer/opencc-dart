@@ -18,10 +18,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu, macos, windows]
+        os: [linux, macos, windows]
         arch: [x86, arm64]
+        runner: [dummy-runner]
+        include:
+          - os: linux
+            arch: x86
+            runner: ubuntu-latest
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest-arm64
 
-    runs-on: ${{ matrix.os }}-latest-${{ matrix.arch }}
+          - os: macos
+            arch: x86
+            runner: macos-latest
+          - os: macos
+            arch: arm64
+            runner: macos-latest-arm64
+
+          - os: windows
+            arch: x86
+            runner: windows-latest
+          - os: windows
+            arch: arm64
+            runner: windows-latest
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
     - uses: actions/checkout@v4
