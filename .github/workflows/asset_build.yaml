@@ -26,14 +26,14 @@ jobs:
             runner: ubuntu-latest
           - os: linux
             arch: arm64
-            runner: ubuntu-latest-arm64
+            runner: ubuntu-latest-arm
 
           - os: macos
             arch: x86
-            runner: macos-latest
+            runner: macos-13
           - os: macos
             arch: arm64
-            runner: macos-latest-arm64
+            runner: macos-13-arm
 
           - os: windows
             arch: x86
@@ -53,7 +53,7 @@ jobs:
 
     - name: Install native toolchains
       run: sudo apt-get update && sudo apt-get install clang-15
-      if: ${{ matrix.os == 'ubuntu' }}
+      if: ${{ matrix.os == 'linux' }}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
@@ -75,7 +75,7 @@ jobs:
       working-directory: assets
       if: ${{ matrix.os != 'windows' }}
       env:
-        EXT: ${{ matrix.os == 'ubuntu' && 'so' || 'dylib' }}
+        EXT: ${{ matrix.os == 'macos' && 'dylib' || 'so' }}
       run: |
         ls ../lib-src/build/src
         mv ../lib-src/build/src/*.${EXT}* .
@@ -98,7 +98,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: opencc-${{ matrix.os == 'ubuntu' && 'linux' || matrix.os }}-${{ matrix.arch }}
+        name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
           assets/*.zip
         if-no-files-found: error
