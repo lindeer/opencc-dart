@@ -18,33 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [linux, macos, windows]
-        arch: [x86, arm64]
-        include:
-          - os: linux
-            arch: x86
-            runner: ubuntu-latest
-          - os: linux
-            arch: arm64
-            runner: ubuntu-22.04-arm
+        os: linux
+        arch: arm64
 
-          - os: windows
-            arch: x86
-            runner: windows-latest
-          - os: windows
-            arch: arm64
-            runner: windows-latest
-
-          - os: macos
-            arch: x86
-            runner: macos-13
-        exclude:
-          - os: macos
-            arch: arm64
-#           runner: macos-13-xlarge
-
-
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-22.04-arm
 
     steps:
     - uses: actions/checkout@v4
@@ -55,7 +32,17 @@ jobs:
 
     - name: Install native toolchains
       run: sudo apt-get update && sudo apt-get install clang-15
-      if: ${{ matrix.os == 'linux' }}
+      if: ${{ matrix.os == 'linux' && matrix.arch == 'x86'}}
+
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: glibc-17
+      if: ${{ matrix.os == 'linux' && matrix.arch == 'arm64'}}
+
+    - name: Install conda toolchain
+      run: |
+        conda install 'sysroot_linux-aarch64=2.17' 'gxx=8.5.0'
+      if: ${{ matrix.os == 'linux' && matrix.arch == 'arm64'}}
 
     - uses: ilammy/msvc-dev-cmd@v1
       with:
