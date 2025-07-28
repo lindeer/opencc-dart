@@ -21,7 +21,7 @@ jobs:
         os: [linux]
         arch: [arm64]
 
-    runs-on: ubuntu-18.04-arm
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v4
