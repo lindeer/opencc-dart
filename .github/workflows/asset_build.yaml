@@ -41,7 +41,7 @@ jobs:
 
     - name: Install conda toolchain
       run: |
-        conda install 'sysroot_linux-aarch64=2.17' 'gxx=9.5.0'
+        conda install 'sysroot_linux-aarch64=2.17' 'gxx_linux-aarch64=9.5.0'
       if: ${{ matrix.os == 'linux' && matrix.arch == 'arm64'}}
 
     - uses: ilammy/msvc-dev-cmd@v1
