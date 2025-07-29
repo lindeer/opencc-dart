@@ -30,14 +30,6 @@ jobs:
       with:
         sdk: stable
 
-    - name: Install native toolchains
-      run: |
-        ldd --version
-        sudo apt-get update && sudo apt-get install binutils clang-15
-        strings /lib/aarch64-linux-gnu/libm.so.6 | grep GLIBC_
-        strings /lib/aarch64-linux-gnu/libc.so.6 | grep GLIBC_
-      if: ${{ matrix.os == 'linux'}}
-
     - uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.arch == 'arm64' && 'amd64_arm64' || 'amd64_x86' }}
@@ -48,8 +40,18 @@ jobs:
         mkdir lib-src/build
         mkdir assets
 
+    - name: Build in Docker container
+      if: ${{ matrix.os == 'linux'}}
+      run: |
+        docker pull arm64v8/debian:buster
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          arm64v8/debian:buster /bin/bash tools/compile.sh
+
     - name: Build ${{ matrix.os }} host
       working-directory: lib-src/build
+      if: ${{ matrix.os != 'linux'}}
       run: |
         cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
         cmake --build . --config Release --target Dictionaries
