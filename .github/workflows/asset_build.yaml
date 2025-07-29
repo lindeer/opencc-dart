@@ -9,7 +9,7 @@ on:
     paths:
       - .github/workflows/asset_build.yaml
       - opencc-version
-      - tools/
+      - tools/compile.sh
     tags:
       - 'prebuild-assets-*'
   workflow_dispatch:
