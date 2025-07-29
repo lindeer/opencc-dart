@@ -21,12 +21,10 @@ jobs:
         os: [linux]
         arch: [arm64]
 
-    runs-on: ubuntu-24.04-arm
-    container:
-      image: arm64v8/ubuntu:bionic
-      options: --cpus 4
+    runs-on: ubuntu-22.04-arm
 
     steps:
+    - run: ldd --version
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
