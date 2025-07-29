@@ -28,6 +28,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: ${{ vars.ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION }}
 
     - uses: dart-lang/setup-dart@v1
       with:
