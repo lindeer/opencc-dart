@@ -5,7 +5,7 @@ ldd --version || true
 dpkg -s libc6 | grep Version || true
 
 echo 'Installing build tools (g++, make, cmake) inside container...'
-apt-get update && apt-get install -y build-essential cmake
+apt-get update && apt-get install -y build-essential cmake python
 
 cd lib-src/build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
