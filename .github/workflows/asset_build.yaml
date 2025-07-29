@@ -32,7 +32,8 @@ jobs:
     - name: Install native toolchains
       run: |
         ldd --version
-        sudo apt-get update && sudo apt-get install clang-15
+        sudo apt-get update && sudo apt-get install binutils clang-15
+        strings /lib/aarch64-linux-gnu/libm.so.6 | grep GLIBC_
       if: ${{ matrix.os == 'linux'}}
 
     - uses: ilammy/msvc-dev-cmd@v1
