@@ -26,6 +26,7 @@ jobs:
       image: arm64v8/ubuntu:bionic
       options: --cpus 4
 
+    steps:
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
