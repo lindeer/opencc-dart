@@ -27,14 +27,16 @@ jobs:
       options: --cpus 4
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
     - uses: dart-lang/setup-dart@v1
       with:
         sdk: stable
 
     - name: Install native toolchains
-      run: sudo apt-get update && sudo apt-get install clang-15
+      run: |
+        ldd --version
+        sudo apt-get update && sudo apt-get install clang-15
       if: ${{ matrix.os == 'linux'}}
 
     - uses: ilammy/msvc-dev-cmd@v1
