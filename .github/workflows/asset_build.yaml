@@ -27,9 +27,14 @@ jobs:
       options: --cpus 4
 
     steps:
-    - uses: actions/checkout@v3
-      env:
-        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+    - name: Checkout with node20-glibc2.17
+      if: ${{ matrix.os == 'linux' }}
+      run: |
+        apt install curl -y
+        curl -LO https://unofficial-builds.nodejs.org/download/release/v20.9.0/node-v20.9.0-linux-x64-glibc-217.tar.xz
+        tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
+        ldd /__e/node20/bin/node
+    - uses: actions/checkout@v4
 
     - uses: dart-lang/setup-dart@v1
       with:
