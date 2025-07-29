@@ -30,7 +30,7 @@ jobs:
     - name: Checkout with node20-glibc2.17
       if: ${{ matrix.os == 'linux' }}
       run: |
-        apt install curl -y
+        sudo apt-get update && sudo apt install -y curl
         curl -LO https://unofficial-builds.nodejs.org/download/release/v20.9.0/node-v20.9.0-linux-x64-glibc-217.tar.xz
         tar -xf node-v20.9.0-linux-x64-glibc-217.tar.xz --strip-components 1 -C /node20217
         ldd /__e/node20/bin/node
