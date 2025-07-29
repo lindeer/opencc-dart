@@ -25,6 +25,9 @@ jobs:
     container:
       image: ubuntu:18.04
       options: --cpus 4
+      volumes:
+        - /node20217:/node20217:rw,rshared
+        - /node20217:/__e/node20:ro,rshared
 
     steps:
     - name: Checkout with node20-glibc2.17
