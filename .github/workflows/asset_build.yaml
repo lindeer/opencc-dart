@@ -23,7 +23,7 @@ jobs:
 
     runs-on: ubuntu-24.04-arm
     container:
-      image: ubuntu:18.04
+      image: arm64v8/ubuntu:bionic
       options: --cpus 4
       volumes:
         - /node20217:/node20217:rw,rshared
