@@ -43,11 +43,11 @@ jobs:
     - name: Build in Docker container
       if: ${{ matrix.os == 'linux'}}
       run: |
-        docker pull arm64v8/debian:buster
+        docker pull arm64v8/ubuntu:18.04
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          arm64v8/debian:buster /bin/bash tools/compile.sh
+          arm64v8/ubuntu:18.04 /bin/bash tools/compile.sh
 
     - name: Build ${{ matrix.os }} host
       working-directory: lib-src/build
