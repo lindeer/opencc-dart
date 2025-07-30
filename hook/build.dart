@@ -25,39 +25,32 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
     outputDirectory,
   );
 
+  final args = ['-o', file.path];
   final make = await Process.start(
     'unzip',
-    [
-      '-o',
-      file.path,
-    ],
+    args,
     workingDirectory: input.outputDirectory.path,
   );
-
   stdout.addStream(make.stdout);
   stderr.addStream(make.stderr);
   final code = await make.exitCode;
   if (code != 0) {
     exit(code);
   }
-  print("Unzip '$file' done.");
-  /*
-  final fileHash = await hashAsset(file);
-  final expectedHash =
-  assetHashes[input.config.code.targetOS.dylibFileName(
-    createTargetName(
-      targetOS.name,
-      targetArchitecture.name,
-      iOSSdk?.type,
-    ),
-  )];
-  if (fileHash != expectedHash) {
-    throw Exception(
-      'File $file was not downloaded correctly. '
-          'Found hash $fileHash, expected $expectedHash.',
-    );
+  stderr.writeln("Unzip '$file' done.");
+  final sharedDir = String.fromEnvironment(
+    "OPENCC_SHARED_DIR",
+    defaultValue: ".dart_tool/share",
+  );
+
+  if (sharedDir.isNotEmpty) {
+    final dir = Directory(sharedDir);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
+    final resDir = Directory.fromUri(input.outputDirectory.resolve('opencc'));
+    resDir.renameSync(sharedDir);
   }
-  */
   final targetName = targetOS.dylibFileName(input.packageName);
   output.assets.code.add(
     CodeAsset(
@@ -69,27 +62,39 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
   );
 }
 
-const _url = 'https://github.com/dart-lang/native/releases/download';
+const _ver = 'opencc-v1';
+const _url = 'https://github.com/lindeer/opencc-dart/releases/download/$_ver';
+
+Future<HttpClientResponse> _httpGet(HttpClient client, Uri uri) async {
+  final request = await client.getUrl(uri);
+  request.followRedirects = true;
+  return await request.close();
+}
 
 Future<File> _download(
-    OS os,
-    Architecture arch,
-    IOSSdk? iOSSdk,
-    Directory outDir,
-    ) async {
-
+  OS os,
+  Architecture arch,
+  IOSSdk? iOSSdk,
+  Directory outDir,
+) async {
   final suffix = iOSSdk == null ? '' : '-$iOSSdk';
-  final uri = Uri.parse('http://127.0.0.1:8000/opencc-$os-$arch$suffix.zip');
-  print("Downloading '$uri' ...");
-  final request = await HttpClient().getUrl(uri);
-  final response = await request.close();
-  if (response.statusCode != 200) {
-    throw ArgumentError('The request to $uri failed.');
+  final uri = Uri.parse('$_url/opencc-$os-$arch$suffix.zip');
+  stderr.writeln("Downloading '$uri' ...");
+  final client = HttpClient();
+  var response = await _httpGet(client, uri);
+  while (response.isRedirect) {
+    response.drain();
+    final location = response.headers.value(HttpHeaders.locationHeader);
+    if (location != null) {
+      response = await _httpGet(client, uri.resolve(location));
+    }
   }
-  print("Download done.");
+  if (response.statusCode != 200) {
+    throw ArgumentError('The request to $uri failed(${response.statusCode}).');
+  }
   final archive = File.fromUri(outDir.uri.resolve(p.basename(uri.path)));
-  print("zip archive: $archive");
   await archive.create();
   await response.pipe(archive.openWrite());
+  stderr.writeln("Download done. Zip archive: '${archive.path}'");
   return archive;
 }
