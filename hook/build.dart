@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:path/path.dart' as p;
+import 'package:zip2/zip2.dart';
 
 const _libName = 'opencc';
 
@@ -25,32 +26,41 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
     outputDirectory,
   );
 
-  final args = ['-o', file.path];
-  final make = await Process.start(
-    'unzip',
-    args,
-    workingDirectory: input.outputDirectory.path,
+  final libFilename = input.config.code.targetOS.dylibFileName(_libName);
+  final archive = file.openSync().unzip();
+  final libEntry = archive[libFilename];
+  const resDirName = 'opencc';
+  final resEntries = archive.entries.where(
+    (f) => f.name.startsWith('$resDirName/') && !f.name.endsWith('/'),
   );
-  stdout.addStream(make.stdout);
-  stderr.addStream(make.stderr);
-  final code = await make.exitCode;
-  if (code != 0) {
-    exit(code);
+  if (libEntry != null) {
+    final outLibFile = File.fromUri(input.outputDirectory.resolve(libFilename));
+    stderr.write("Extract '${libEntry.name}' -> $outLibFile");
+    await libEntry.data.pipe(outLibFile.openWrite());
   }
-  stderr.writeln("Unzip '$file' done.");
+
   final sharedDir = String.fromEnvironment(
     "OPENCC_SHARED_DIR",
     defaultValue: ".dart_tool/share",
   );
 
-  if (sharedDir.isNotEmpty) {
-    final dir = Directory(sharedDir);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
-    }
-    final resDir = Directory.fromUri(input.outputDirectory.resolve('opencc'));
-    resDir.renameSync(sharedDir);
+  final resUri = Uri.directory(sharedDir);
+  final dir = Directory.fromUri(resUri);
+  if (!dir.existsSync()) {
+    dir.createSync(recursive: true);
   }
+  for (final e in resEntries) {
+    final filename = p.relative(e.name, from: resDirName);
+    final f = File.fromUri(resUri.resolve(filename));
+    final parent = f.parent;
+    if (!parent.existsSync()) {
+      parent.create(recursive: true);
+    }
+    stderr.writeln("Extract '${e.name}' -> '${f.path}'");
+    await e.data.pipe(f.openWrite());
+  }
+  stderr.writeln("Unzip $file done.");
+
   final targetName = targetOS.dylibFileName(input.packageName);
   output.assets.code.add(
     CodeAsset(
