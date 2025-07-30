@@ -1,4 +1,5 @@
-uname -ar
+ARCH=$(uname -m)
+echo "--- Inside $ARCH container ---"
 ldd --version || true
 dpkg -s libc6 | grep Version || true
 

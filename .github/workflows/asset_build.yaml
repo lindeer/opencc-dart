@@ -44,8 +44,6 @@ jobs:
 #           runner: macos-13-xlarge
 
     runs-on: ${{ matrix.runner }}
-    env:
-      ARCH: ${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
 
     steps:
     - uses: actions/checkout@v4
