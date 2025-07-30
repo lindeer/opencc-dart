@@ -8,10 +8,9 @@ on:
     branches: [ t/assets ]
     paths:
       - .github/workflows/asset_build.yaml
-      - opencc-version
       - tools/compile.sh
     tags:
-      - 'prebuild-assets-*'
+      - 'opencc-v*'
   workflow_dispatch:
 
 jobs:
@@ -107,7 +106,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        # if: startsWith(github.ref, 'refs/tags/prebuild-assets')
+        if: startsWith(github.ref, 'refs/tags/opencc-v')
         with:
           files: 'assets/**'
           fail_on_unmatched_files: true
