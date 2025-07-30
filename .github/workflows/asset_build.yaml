@@ -63,22 +63,22 @@ jobs:
       env:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || 'so' }}
       run: |
-        ls ../lib-src/build/src
-        mv ../lib-src/build/src/*.${EXT}* .
+        ls -l ../lib-src/build/src
+        cp ../lib-src/build/src/*.${EXT}* .
         mkdir opencc
-        mv ../lib-src/build/data/*.ocd2 opencc
-        mv ../lib-src/data/config/*.json opencc
+        cp ../lib-src/build/data/*.ocd2 opencc
+        cp ../lib-src/data/config/*.json opencc
         zip -r assets.zip *.${EXT}* opencc
 
     - name: Pack windows archive
       working-directory: assets
       if: ${{ matrix.os == 'windows' }}
       run: |
-        ls ../lib-src/build/src
-        mv ../lib-src/build/src/Release/*.dll .
+        ls -l ../lib-src/build/src
+        cp ../lib-src/build/src/Release/*.dll .
         mkdir opencc
-        mv ../lib-src/build/data/*.ocd2 opencc
-        mv ../lib-src/data/config/*.json opencc
+        cp ../lib-src/build/data/*.ocd2 opencc
+        cp ../lib-src/data/config/*.json opencc
         tar.exe -cf assets.zip *.dll opencc
 
     - name: Upload artifacts
