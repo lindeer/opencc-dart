@@ -1,8 +1,7 @@
-import 'dart:io' show Directory, File, FileSystemEntity;
-import 'dart:math';
+import 'dart:io' show Directory, File;
 
 import 'package:path/path.dart' as p;
-import 'package:glob/glob.dart';
+import 'package:glob/glob.dart' show Glob;
 import 'package:glob/list_local_fs.dart';
 import 'package:zip2/zip2.dart' show ZipArchive, ZipFileEntry, ZipEntryItorExt;
 
@@ -22,10 +21,12 @@ Iterable<String> _listRecursive(Directory dir) {
 }
 
 void main(List<String> argv) {
-  final target =
-  argv.isNotEmpty ? argv[0] : throw Exception('No zip file specified!');
-  final entries = _expand(argv.sublist(1))
-      .map((f) => ZipFileEntry(name: f, data: File(f).openRead()));
+  final target = argv.isNotEmpty
+      ? argv[0]
+      : throw Exception('No zip file specified!');
+  final entries = _expand(
+    argv.sublist(1),
+  ).map((f) => ZipFileEntry(name: f, data: File(f).openRead()));
   entries.map((e) => '  adding: ${e.name}').forEach(print);
 
   if (entries.isEmpty) {
