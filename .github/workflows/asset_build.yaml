@@ -44,6 +44,8 @@ jobs:
 #           runner: macos-13-xlarge
 
     runs-on: ${{ matrix.runner }}
+    env:
+      ARCH: ${{ matrix.arch == 'arm64' && 'aarch64' || 'x86_64' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -64,11 +66,11 @@ jobs:
     - name: Build in Docker container
       if: ${{ matrix.os == 'linux'}}
       run: |
-        docker pull arm64v8/ubuntu:18.04
+        docker pull ubuntu:18.04
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          arm64v8/ubuntu:18.04 /bin/bash tools/compile.sh
+          ubuntu:18.04 /bin/bash tools/compile.sh
 
     - name: Build ${{ matrix.os }}-${{ matrix.arch }} host
       working-directory: lib-src/build
