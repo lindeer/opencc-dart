@@ -54,3 +54,11 @@ final ss = file.openRead()
 
 await File(output).openWrite().addStream(ss);
 ```
+
+### 容器编译
+
+通过以下命令运行`tools/compile.sh`
+
+```
+docker run -it -v $PWD:/work -w /work arm64v8/ubuntu:18.04 /bin/bash
+```
