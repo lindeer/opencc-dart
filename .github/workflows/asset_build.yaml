@@ -36,7 +36,7 @@ jobs:
         arch: ${{ matrix.arch == 'arm64' && 'amd64_arm64' || 'amd64_x86' }}
       if: ${{ matrix.os == 'windows' }}
 
-    - run: git clone https://github.com/BYVoid/OpenCC.git lib-src --depth 1 -b $(cat opencc-version)
+    - run: git clone https://gitlab.com/lindeer/opencc.git lib-src --depth 1 -b $(cat opencc-version)
     - run: |
         mkdir lib-src/build
         mkdir assets
