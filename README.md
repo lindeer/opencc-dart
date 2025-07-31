@@ -1,11 +1,17 @@
 
 A dart wrapper of project [opencc](https://github.com/BYVoid/OpenCC).
 
-依赖包需要开启native-assets特性：`dart --enable-experiment=native-assets run bin/opencc.dart`.
+The dependent shared library would be downloaded from remote.
+
+`OPENCC_SHARED_DIR=.dart_tool/share dart --enable-experiment=native-assets run -v bin/opencc.dart '凭君传语报平安'`
+
 
 ## 前置依赖
 
-系统安装`cmake`命令
+1. dart依赖`native-assets`特性，dart3.8以后仅在dev渠道中具备。dev渠道不稳定，某些版本会出现匪夷所思的问题，目前测试`3.10.0-14.0.dev`是可用的。
+2. 远程编译`OpenCC`无法通过`-DSHARE_INSTALL_PREFIX=`将资源路径设置到共享库中，通过改造源码可通过环境变量`OPENCC_SHARED_DIR`加载配置资源。
+3. 命令行设置`OPENCC_SHARED_DIR=.dart_tool/share`无法将环境变量传递到dart运行时上下文，需要通过`dart run -DOPENCC_SHARED_DIR=.dart_tool/share`方法，但`3.10.0-14.0.dev`版本中`-D`或`--define=`方式传递环境变量的方式是失效的。目前`OPENCC_SHARED_DIR=.dart_tool/share`不可缺省，也不可自定义路径。
+4. 远程共享库在`ubuntu:18.04`的容器中编译，最低可支持较为普遍的`GLIBC_2.27`
 
 ## 直接使用
 
@@ -26,7 +32,7 @@ opencc -i -c s2t 简体文件1.txt 简体文件2.txt
 ## 开发引入
 
 ```yaml
-opencc: ^1.0.0
+opencc: ^1.1.0
 ```
 
 ### 处理小段文本
