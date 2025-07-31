@@ -88,10 +88,7 @@ jobs:
         dart ../tools/mkdir.dart opencc
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
-        echo "============"
         ls -R .
-        echo "============"
-        ls -l ${{ env.LIB_DIR }}
 
     - name: Pack assets archive on ${{ matrix.os }}
       if: matrix.os != 'windows'
@@ -101,9 +98,7 @@ jobs:
     - name: Pack assets archive on windows
       if: matrix.os == 'windows'
       working-directory: assets
-      run: |
-        ls -R .
-        tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
+      run: tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
