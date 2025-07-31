@@ -81,9 +81,12 @@ jobs:
       working-directory: assets
       env:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || (matrix.os == 'windows' && 'dll' || 'so') }}
+        REL: ${{ matrix.os == 'windows' && '/Release' || '' }}
       run: |
+        ls -l
+        echo "PPPPPPPPPPPPPPPP"
         ls -l ../lib-src/build/src
-        cp ../lib-src/build/src/*.${EXT} .
+        cp ../lib-src/build/src${REL}/*.${EXT} .
         dart ../tools/mkdir.dart opencc
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
@@ -93,7 +96,7 @@ jobs:
       with:
         name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
-          assets/**
+          assets/
         if-no-files-found: error
 
   release:
