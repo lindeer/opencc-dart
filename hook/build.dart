@@ -30,8 +30,9 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
   final archive = file.openSync().unzip();
   final libEntry = archive[libFilename];
   const resDirName = 'opencc';
+  final sep = Platform.pathSeparator;
   final resEntries = archive.entries.where(
-    (f) => f.name.startsWith('$resDirName/') && !f.name.endsWith('/'),
+    (f) => f.name.startsWith('$resDirName$sep') && !f.name.endsWith(sep),
   );
   if (libEntry != null) {
     final outLibFile = File.fromUri(input.outputDirectory.resolve(libFilename));
