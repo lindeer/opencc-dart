@@ -72,8 +72,8 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
   );
 }
 
-const _ver = 'opencc-v1';
-const _url = 'https://github.com/lindeer/opencc-dart/releases/download/$_ver';
+const _ver = 'opencc-v1.1.9.a';
+const _url = 'https://ghfast.top/https://github.com/lindeer/opencc-dart/releases/download/$_ver';
 
 Future<HttpClientResponse> _httpGet(HttpClient client, Uri uri) async {
   final request = await client.getUrl(uri);
