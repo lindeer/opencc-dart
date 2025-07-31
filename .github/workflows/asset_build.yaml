@@ -83,16 +83,16 @@ jobs:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || (matrix.os == 'windows' && 'dll' || 'so') }}
         REL: ${{ matrix.os == 'windows' && '/Release' || '' }}
       run: |
-        ls -l .
-        echo "PPPPPPPPPPPPPPPP"
         ls -l ../lib-src/build/src
         cp ../lib-src/build/src${REL}/*.${EXT} .
         dart ../tools/mkdir.dart opencc
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
+        echo "PPPPPPPPPPPPPPPP"
+        ls -l -R .
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
