@@ -87,14 +87,13 @@ jobs:
         dart ../tools/mkdir.dart opencc
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
-        dart ../tools/zip.dart assets.zip *.${EXT} opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
-          assets/*.zip
+          assets/**
         if-no-files-found: error
 
   release:
