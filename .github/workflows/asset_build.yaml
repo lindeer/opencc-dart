@@ -89,7 +89,7 @@ jobs:
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
         ls -R .
-        dart ../tools/zip.dart *.${{ env.EXT }} opencc
+        dart ../tools/zip.dart opencc-${{ matrix.os }}-${{ matrix.arch }}.zip *.${{ env.EXT }} opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
