@@ -91,12 +91,22 @@ jobs:
         echo "PPPPPPPPPPPPPPPP"
         ls -R .
 
+    - name: Pack assets archive on ${{ matrix.os }}
+      if: matrix.os != 'windows'
+      working-directory: assets
+      run: zip -r 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.so *.dylib opencc/
+
+    - name: Pack assets archive on windows
+      if: matrix.os == 'windows'
+      working-directory: assets
+      run: tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: opencc-${{ matrix.os }}-${{ matrix.arch }}
         path: |
-          assets/
+          assets/*.zip
         if-no-files-found: error
 
   release:
@@ -117,7 +127,7 @@ jobs:
 
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/opencc-v')
+        # if: startsWith(github.ref, 'refs/tags/opencc-v')
         with:
           files: 'assets/**'
           fail_on_unmatched_files: true
