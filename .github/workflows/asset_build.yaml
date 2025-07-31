@@ -83,7 +83,7 @@ jobs:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || (matrix.os == 'windows' && 'dll' || 'so') }}
         REL: ${{ matrix.os == 'windows' && '/Release' || '' }}
       run: |
-        ls -l
+        ls -l .
         echo "PPPPPPPPPPPPPPPP"
         ls -l ../lib-src/build/src
         cp ../lib-src/build/src${REL}/*.${EXT} .
