@@ -89,16 +89,7 @@ jobs:
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
         ls -R .
-
-    - name: Pack assets archive on ${{ matrix.os }}
-      if: matrix.os != 'windows'
-      working-directory: assets
-      run: zip -r 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.so *.dylib opencc/
-
-    - name: Pack assets archive on windows
-      if: matrix.os == 'windows'
-      working-directory: assets
-      run: tar.exe -cf 'opencc-${{ matrix.os }}-${{ matrix.arch }}.zip' *.dll opencc
+        dart ../tools/zip.dart *.${{ env.EXT }} opencc
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
