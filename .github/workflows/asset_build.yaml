@@ -19,24 +19,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [linux, macos, windows]
-        arch: [x86, arm64]
+        arch: [x64, arm64]
         include:
           - os: linux
-            arch: x86
+            arch: x64
             runner: ubuntu-latest
           - os: linux
             arch: arm64
             runner: ubuntu-22.04-arm
 
           - os: windows
-            arch: x86
+            arch: x64
             runner: windows-latest
           - os: windows
             arch: arm64
             runner: windows-latest
 
           - os: macos
-            arch: x86
+            arch: x64
             runner: macos-13
         exclude:
           - os: macos
