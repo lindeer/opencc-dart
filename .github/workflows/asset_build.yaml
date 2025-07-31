@@ -83,8 +83,8 @@ jobs:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || (matrix.os == 'windows' && 'dll' || 'so') }}
         LIB_DIR: ../lib-src/build/src${{ matrix.os == 'windows' && '/Release' || '' }}
       run: |
-        ls -l ${LIB_DIR}
-        cp ${LIB_DIR}/*.${EXT} .
+        ls -l ${{ env.LIB_DIR }}
+        cp ${{ env.LIB_DIR }}/*.${EXT} .
         dart ../tools/mkdir.dart opencc
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
