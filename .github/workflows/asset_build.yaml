@@ -89,7 +89,7 @@ jobs:
         cp ../lib-src/build/data/*.ocd2 opencc
         cp ../lib-src/data/config/*.json opencc
         echo "PPPPPPPPPPPPPPPP"
-        lss -R .
+        ls -R .
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
