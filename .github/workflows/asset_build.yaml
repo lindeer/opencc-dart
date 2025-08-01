@@ -59,8 +59,10 @@ jobs:
 
     - run: dart pub get
     - run: git clone https://gitlab.com/lindeer/opencc.git lib-src --depth 1 -b $(cat opencc-version)
+    # `mkdir` usage is different on windows
     - run: dart tools/mkdir.dart lib-src/build assets
 
+    # ubuntu:18.04 is GLIBC_2.27 while ubuntu-22.04 host is GLIBC_2.29
     - name: Build in Docker container
       if: ${{ matrix.os == 'linux'}}
       run: |
@@ -68,7 +70,8 @@ jobs:
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          ubuntu:18.04 /bin/bash tools/compile.sh
+          ubuntu:18.04 \
+          /bin/bash tools/compile.sh
 
     - name: Build ${{ matrix.os }}-${{ matrix.arch }} host
       working-directory: lib-src/build
