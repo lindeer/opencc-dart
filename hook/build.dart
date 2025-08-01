@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:code_assets/code_assets.dart';
 import 'package:hooks/hooks.dart';
 import 'package:path/path.dart' as p;
+import 'package:zip2/zip2.dart';
 
 const _libName = 'opencc';
 
@@ -25,39 +26,42 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
     outputDirectory,
   );
 
-  final make = await Process.start(
-    'unzip',
-    [
-      '-o',
-      file.path,
-    ],
-    workingDirectory: input.outputDirectory.path,
+  final libFilename = input.config.code.targetOS.dylibFileName(_libName);
+  final archive = file.openSync().unzip();
+  final libEntry = archive[libFilename];
+  const resDirName = 'opencc';
+  final sep = Platform.pathSeparator;
+  final resEntries = archive.entries.where(
+    (f) => f.name.startsWith('$resDirName$sep') && !f.name.endsWith(sep),
+  );
+  if (libEntry != null) {
+    final outLibFile = File.fromUri(input.outputDirectory.resolve(libFilename));
+    stderr.write("Extract '${libEntry.name}' -> $outLibFile");
+    await libEntry.data.pipe(outLibFile.openWrite());
+  }
+
+  final sharedDir = String.fromEnvironment(
+    "OPENCC_SHARED_DIR",
+    defaultValue: ".dart_tool/share",
   );
 
-  stdout.addStream(make.stdout);
-  stderr.addStream(make.stderr);
-  final code = await make.exitCode;
-  if (code != 0) {
-    exit(code);
+  final resUri = Uri.directory(sharedDir);
+  final dir = Directory.fromUri(resUri);
+  if (!dir.existsSync()) {
+    dir.createSync(recursive: true);
   }
-  print("Unzip '$file' done.");
-  /*
-  final fileHash = await hashAsset(file);
-  final expectedHash =
-  assetHashes[input.config.code.targetOS.dylibFileName(
-    createTargetName(
-      targetOS.name,
-      targetArchitecture.name,
-      iOSSdk?.type,
-    ),
-  )];
-  if (fileHash != expectedHash) {
-    throw Exception(
-      'File $file was not downloaded correctly. '
-          'Found hash $fileHash, expected $expectedHash.',
-    );
+  for (final e in resEntries) {
+    final filename = p.relative(e.name, from: resDirName);
+    final f = File.fromUri(resUri.resolve(filename));
+    final parent = f.parent;
+    if (!parent.existsSync()) {
+      parent.create(recursive: true);
+    }
+    stderr.writeln("Extract '${e.name}' -> '${f.path}'");
+    await e.data.pipe(f.openWrite());
   }
-  */
+  stderr.writeln("Unzip $file done.");
+
   final targetName = targetOS.dylibFileName(input.packageName);
   output.assets.code.add(
     CodeAsset(
@@ -69,27 +73,41 @@ Future<void> _builder(BuildInput input, BuildOutputBuilder output) async {
   );
 }
 
-const _url = 'https://github.com/dart-lang/native/releases/download';
+const _url = 'https://github.com/lindeer/opencc-dart/releases/latest/download';
+
+Future<HttpClientResponse> _httpGet(HttpClient client, Uri uri) async {
+  final request = await client.getUrl(uri);
+  request.followRedirects = true;
+  return await request.close();
+}
 
 Future<File> _download(
-    OS os,
-    Architecture arch,
-    IOSSdk? iOSSdk,
-    Directory outDir,
-    ) async {
-
+  OS os,
+  Architecture arch,
+  IOSSdk? iOSSdk,
+  Directory outDir,
+) async {
   final suffix = iOSSdk == null ? '' : '-$iOSSdk';
-  final uri = Uri.parse('http://127.0.0.1:8000/opencc-$os-$arch$suffix.zip');
-  print("Downloading '$uri' ...");
-  final request = await HttpClient().getUrl(uri);
-  final response = await request.close();
-  if (response.statusCode != 200) {
-    throw ArgumentError('The request to $uri failed.');
+  final proxy = String.fromEnvironment('GITHUB_PROXY');
+  final prefix = (proxy.isEmpty || proxy.endsWith('/')) ? proxy : '$proxy/';
+  final uri = Uri.parse('$prefix$_url/opencc-$os-$arch$suffix.zip');
+  stderr.writeln("Downloading '$uri' ...");
+  final client = HttpClient();
+  var response = await _httpGet(client, uri);
+  while (response.isRedirect) {
+    response.drain();
+    final location = response.headers.value(HttpHeaders.locationHeader);
+    stderr.writeln("Redirecting $location ...");
+    if (location != null) {
+      response = await _httpGet(client, uri.resolve(location));
+    }
   }
-  print("Download done.");
+  if (response.statusCode != 200) {
+    throw ArgumentError('The request to $uri failed(${response.statusCode}).');
+  }
   final archive = File.fromUri(outDir.uri.resolve(p.basename(uri.path)));
-  print("zip archive: $archive");
   await archive.create();
   await response.pipe(archive.openWrite());
+  stderr.writeln("Download done. Zip archive: '${archive.path}'");
   return archive;
 }
