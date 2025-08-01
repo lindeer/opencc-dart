@@ -46,5 +46,6 @@ jobs:
       - run: dart pub get
 
       - name: Run test cases
-        env: OPENCC_SHARED_DIR=.dart_tool/share
+        env:
+          OPENCC_SHARED_DIR: .dart_tool/share
         run: dart --enable-experiment=native-assets test
