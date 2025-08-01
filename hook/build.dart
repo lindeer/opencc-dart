@@ -88,7 +88,9 @@ Future<File> _download(
   Directory outDir,
 ) async {
   final suffix = iOSSdk == null ? '' : '-$iOSSdk';
-  final uri = Uri.parse('$_url/opencc-$os-$arch$suffix.zip');
+  final proxy = String.fromEnvironment('GITHUB_PROXY');
+  final prefix = (proxy.isEmpty || proxy.endsWith('/')) ? proxy : '$proxy/';
+  final uri = Uri.parse('$prefix$_url/opencc-$os-$arch$suffix.zip');
   stderr.writeln("Downloading '$uri' ...");
   final client = HttpClient();
   var response = await _httpGet(client, uri);

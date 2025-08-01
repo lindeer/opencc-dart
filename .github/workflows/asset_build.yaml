@@ -5,10 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [ t/assets ]
-    paths:
-      - .github/workflows/asset_build.yaml
-      - tools/compile.sh
+    branches: [ main ]
     tags:
       - 'opencc-v*'
   workflow_dispatch:
@@ -85,6 +82,7 @@ jobs:
       env:
         EXT: ${{ matrix.os == 'macos' && 'dylib' || (matrix.os == 'windows' && 'dll' || 'so') }}
         LIB_DIR: ../lib-src/build/src${{ matrix.os == 'windows' && '/Release' || '' }}
+      # windows does not have zip command
       run: |
         ls -l ${{ env.LIB_DIR }}
         cp ${{ env.LIB_DIR }}/*.${{ env.EXT }} .
