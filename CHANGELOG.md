@@ -1,6 +1,10 @@
-## 1.2.0
+## 1.2.0-dev.1
+
 - Upgrade native_assets_cli to hook
 - Set dart sdk version as 3.10.0-14.0.dev
+- Support downloading remote libraries.
+- Dart crossing platform tools.
+- Github action for building & releasing.
 
 ## 1.1.0
 

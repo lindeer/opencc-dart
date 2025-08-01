@@ -1,6 +1,6 @@
 name: opencc
 description: A dart library for conversion between Traditional and Simplified Chinese with natvie-assets.
-version: 1.2.0
+version: 1.2.0-dev.1
 repository: https://github.com/lindeer/opencc-dart
 
 environment:
@@ -10,8 +10,8 @@ executables:
   opencc:
 
 dependencies:
-  code_assets: any
-  hooks: any
+  code_assets: ^0.19.0
+  hooks: ^0.19.0
   ffi: ^2.1.3
   glob: ^2.1.2
   path: ^1.9.0
