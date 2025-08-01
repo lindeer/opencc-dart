@@ -1,4 +1,4 @@
-name: CI - Build and Test (Multi-arch)
+name: CI - Test (Multi-arch)
 
 on:
   push:
